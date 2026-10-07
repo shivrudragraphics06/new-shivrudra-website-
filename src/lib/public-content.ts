@@ -76,6 +76,7 @@ export type PublicIndustry = {
   slug?: string;
   icon_url?: string;
   image_url?: string;
+  short_description?: string;
 };
 
 export type PublicClient = {
@@ -95,8 +96,24 @@ export type PublicTestimonial = {
   company?: string;
   message?: string;
   rating?: number;
+  testimonial?: string;
+  designation?: string;
+  company_name?: string;
+  image_url?: string;
 };
 
+export type PublicBlog = {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  content?: string;
+  author?: string;
+  publish_date?: string;
+  featured_image_url?: string;
+};
+
+export const fetchPublicBlogs = () => publicApi<PublicBlog[]>("/blogs");
 export const fetchPublicServices = () => publicApi<PublicService[]>("/services");
 export const fetchPublicCategories = () => publicApi<PublicCategory[]>("/categories");
 export const fetchPublicProducts = () => publicApi<PublicProduct[]>("/products");

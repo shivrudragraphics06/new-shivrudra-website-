@@ -9,6 +9,7 @@ import { SITE_TAGLINE } from "@/data/site";
 import { AdminPage } from "@/routes/admin";
 import { AboutPage } from "@/routes/about";
 import { ClientsPage } from "@/routes/clients";
+import { BlogsPage } from "@/routes/blogs";
 import { ContactPage } from "@/routes/contact";
 import { GalleryPage } from "@/routes/gallery";
 import { HomePage } from "@/routes/index";
@@ -25,6 +26,7 @@ const STATIC_TITLES: Record<string, string> = {
   "/industries": "Industries We Serve - Shivrudra Graphics",
   "/gallery": "Gallery - Shivrudra Graphics",
   "/clients": "Our Clients - Shivrudra Graphics",
+  "/blogs": "Blogs - Shivrudra Graphics",
   "/contact": "Contact Us - Shivrudra Graphics",
   "/logo-design": "Logo Design Types - Shivrudra Graphics",
 };
@@ -95,6 +97,8 @@ function CurrentPage({ pathname }: { pathname: string }) {
   if (pathname === "/industries") return <IndustriesPage />;
   if (pathname === "/gallery") return <GalleryPage />;
   if (pathname === "/clients") return <ClientsPage />;
+  if (pathname === "/blogs") return <BlogsPage />;
+  if (segments[0] === "blogs" && segments.length === 2) return <BlogsPage slug={decodeURIComponent(segments[1])} />;
   if (pathname === "/contact") return <ContactPage />;
   if (pathname === "/logo-design") return <LogoDesignPage />;
   if (segments[0] === "services" && segments[1] && segments[2])

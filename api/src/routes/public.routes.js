@@ -6,7 +6,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 export const publicRoutes = Router();
 
 function mediaUrl(req, resource, id, field = "image") {
-  return `${req.protocol}://${req.get("host")}/api/public/media/${resource}/${id}/${field}`;
+  return `/api/public/media/${resource}/${id}/${field}`;
 }
 
 const publicMedia = {
@@ -117,7 +117,9 @@ publicRoutes.get(
 publicRoutes.get(
   "/gallery",
   asyncHandler(async (req, res) => {
-    const [rows] = await pool.query("SELECT * FROM gallery WHERE status = 'ACTIVE' ORDER BY display_order ASC, id DESC");
+    const [rows] = await pool.query(`SELECT gallery.*, gallery_categories.name AS category
+      FROM gallery LEFT JOIN gallery_categories ON gallery_categories.id = gallery.gallery_category_id
+      WHERE gallery.status = 'ACTIVE' ORDER BY gallery.display_order ASC, gallery.id DESC`);
     res.json(rows.map((row) => publicRow(row, "gallery", req)));
   }),
 );

@@ -175,7 +175,7 @@ function normalizeStatus(payload) {
 }
 
 function hydrateCompatibility(row, resourceKey, req) {
-  const base = `${req.protocol}://${req.get("host")}/api/public/media/${resourceKey}/${row.id}`;
+  const base = `/api/public/media/${resourceKey}/${row.id}`;
   const output = { ...row };
 
   delete output.image_data;

@@ -37,7 +37,7 @@ import gurudattaWadapavLogo from "@/assets/client logos/gurudatta wadapav.png";
 import serumLogo from "@/assets/client logos/serum logo.png";
 import fitnessLogo from "@/assets/client logos/fitness.png";
 import inigmaAirLogo from "@/assets/client logos/inigmaair.png";
-import { useEffect, useState } from "react";
+import { usePublicContent } from "@/hooks/use-public-content";
 import { assetUrl } from "@/lib/api";
 import { fetchPublicClients, type PublicClient } from "@/lib/public-content";
 
@@ -197,13 +197,7 @@ const STATIC_CLIENTS = [
 ];
 
 export function ClientsPage() {
-  const [clients, setClients] = useState<PublicClient[] | null>(null);
-
-  useEffect(() => {
-    fetchPublicClients()
-      .then((items) => setClients(items))
-      .catch(() => {});
-  }, []);
+  const { content: clients } = usePublicContent<PublicClient[] | null>(fetchPublicClients, null);
 
   return (
     <div className="bg-white">

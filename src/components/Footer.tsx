@@ -44,6 +44,7 @@ export function Footer() {
               "/industries",
               "/gallery",
               "/clients",
+              "/blogs",
               "/contact",
             ].map((p) => (
               <li key={p}>

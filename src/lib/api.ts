@@ -14,6 +14,7 @@ export function assetUrl(path?: string | null) {
 
 export async function publicApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_URL}/api/public${path}`, {
+    cache: "no-store",
     ...options,
     headers: {
       ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),

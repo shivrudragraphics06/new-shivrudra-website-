@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Maximize2, X } from "lucide-react";
-import { GALLERY_CATEGORIES } from "@/data/site";
 import { assetUrl } from "@/lib/api";
-import { fetchPublicGallery } from "@/lib/public-content";
+import { fetchPublicGallery, type PublicGalleryItem } from "@/lib/public-content";
+import { usePublicContent } from "@/hooks/use-public-content";
 
 type GalleryItem = { cat: string; title: string; img: string };
 
@@ -80,31 +80,21 @@ export function ProductGallerySection({
 }) {
   const [active, setActive] = useState("All");
   const [selected, setSelected] = useState<GalleryItem | null>(null);
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(PRODUCT_GALLERY_ITEMS);
-
-  useEffect(() => {
-    fetchPublicGallery()
-      .then((items) => {
-        if (!items.length) return;
-        setGalleryItems(
-          items.map((item) => ({
-            cat: item.category || item.cat || "Printing",
-            title: item.title,
-            img: item.image_url || item.img || "",
-          })),
-        );
-      })
-      .catch(() => {});
-  }, []);
+  const { content: gallery } = usePublicContent<PublicGalleryItem[] | null>(fetchPublicGallery, null);
+  const galleryItems = useMemo(() => gallery === null ? PRODUCT_GALLERY_ITEMS : gallery
+    .filter((item) => item.image_url || item.img)
+    .map((item) => ({ cat: item.category || item.cat || "Gallery", title: item.title, img: item.image_url || item.img || "" })), [gallery]);
+  const categories = useMemo(() => ["All", ...new Set(galleryItems.map((item) => item.cat))], [galleryItems]);
+  const selectedCategory = categories.includes(active) ? active : "All";
 
   const filtered = useMemo(() => {
     const items =
-      showFilters && active !== "All"
-        ? galleryItems.filter((item) => item.cat === active)
+      showFilters && selectedCategory !== "All"
+        ? galleryItems.filter((item) => item.cat === selectedCategory)
         : galleryItems;
 
     return typeof limit === "number" ? items.slice(0, limit) : items;
-  }, [active, galleryItems, limit, showFilters]);
+  }, [selectedCategory, galleryItems, limit, showFilters]);
 
   return (
     <section className={`bg-white ${compactTop ? "pb-16 pt-8" : "py-16"}`}>
@@ -118,13 +108,13 @@ export function ProductGallerySection({
 
         {showFilters && (
           <div className="mt-8 flex flex-wrap justify-center gap-2">
-            {GALLERY_CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <button
                 key={category}
                 type="button"
                 onClick={() => setActive(category)}
                 className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                  active === category
+                  selectedCategory === category
                     ? "gradient-brand border-transparent text-white shadow-brand"
                     : "border-border bg-white hover:border-brand-red hover:text-brand-red"
                 }`}

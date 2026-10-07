@@ -36,6 +36,7 @@ import {
   type PublicTestimonial,
 } from "@/lib/public-content";
 import { assetUrl } from "@/lib/api";
+import { usePublicContent } from "@/hooks/use-public-content";
 
 const TESTIMONIALS = [
   {
@@ -117,7 +118,7 @@ function getServiceImage(service: PublicService) {
 
 export function HomePage() {
   const [services, setServices] = useState<PublicService[]>(SERVICES);
-  const [testimonials, setTestimonials] = useState<PublicTestimonial[]>(TESTIMONIALS);
+  const { content: testimonials } = usePublicContent<PublicTestimonial[]>(fetchPublicTestimonials, TESTIMONIALS);
 
   useEffect(() => {
     fetchPublicServices()
@@ -126,11 +127,6 @@ export function HomePage() {
       })
       .catch(() => {});
 
-    fetchPublicTestimonials()
-      .then((items) => {
-        if (items.length) setTestimonials(items);
-      })
-      .catch(() => {});
   }, []);
 
   return (
@@ -587,19 +583,22 @@ export function HomePage() {
                 className="rounded-2xl border border-border bg-white p-6 shadow-soft transition hover:-translate-y-1 hover:border-brand-red"
               >
                 <div className="flex gap-1 text-brand-yellow">
-                  {[...Array(item.rating || 5)].map((_, index) => (
+                  {[...Array(Math.max(0, Math.min(5, Math.round(item.rating ?? 5))))].map((_, index) => (
                     <Star key={index} className="h-4 w-4 fill-current" />
                   ))}
                 </div>
                 <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-                  "{item.text || item.message}"
+                  "{item.testimonial || item.text || item.message}"
                 </p>
                 <div className="mt-6 border-t border-border pt-4">
+                  {item.image_url ? <img src={assetUrl(item.image_url)} alt={item.client_name || item.name || ""} className="mb-3 h-12 w-12 rounded-full object-cover" loading="lazy" /> : null}
                   <div className="font-display font-bold text-brand-dark">
                     {item.name || item.client_name}
                   </div>
                   <div className="mt-1 text-xs font-semibold uppercase tracking-wider text-brand-red">
-                    {item.role || item.client_role || item.company}
+                    {item.designation || item.role || item.client_role}
+                    {(item.designation || item.role || item.client_role) && (item.company_name || item.company) ? " | " : ""}
+                    {item.company_name || item.company}
                   </div>
                 </div>
               </div>

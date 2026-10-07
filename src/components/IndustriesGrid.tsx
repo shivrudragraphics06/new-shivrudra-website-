@@ -27,6 +27,10 @@ import telecomImage from "@/assets/industries we serve/Telecom.png";
 import tourismImage from "@/assets/industries we serve/Tourism.png";
 import wasteManagementImage from "@/assets/industries we serve/Waste Management.png";
 import wholesaleTradeImage from "@/assets/industries we serve/Wholesale Trade.png";
+import { Building2 } from "lucide-react";
+import { assetUrl } from "@/lib/api";
+import { fetchPublicIndustries, type PublicIndustry } from "@/lib/public-content";
+import { usePublicContent } from "@/hooks/use-public-content";
 
 const INDUSTRY_ITEMS = [
   { name: "Advertising & Media", image: advertisingMediaImage },
@@ -61,6 +65,16 @@ const INDUSTRY_ITEMS = [
 ];
 
 export function IndustriesGrid({ framed = false }: { framed?: boolean }) {
+  const { content: industries } = usePublicContent<PublicIndustry[] | null>(fetchPublicIndustries, null);
+  const items = industries === null ? INDUSTRY_ITEMS : industries.map((industry) => {
+    const original = INDUSTRY_ITEMS.find((item) => item.name.toLowerCase() === industry.name.toLowerCase());
+    return {
+      name: industry.name,
+      image: industry.image_url ? assetUrl(industry.image_url) : original?.image,
+      className: original?.className,
+      description: industry.short_description,
+    };
+  });
   return (
     <div
       className={
@@ -69,7 +83,7 @@ export function IndustriesGrid({ framed = false }: { framed?: boolean }) {
           : "mx-auto grid max-w-[1280px] grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-3 lg:grid-cols-6"
       }
     >
-      {INDUSTRY_ITEMS.map((industry) => (
+      {items.map((industry) => (
         <div key={industry.name} className="group text-center">
           <div
             className={
@@ -78,7 +92,7 @@ export function IndustriesGrid({ framed = false }: { framed?: boolean }) {
                 : "relative mx-auto grid h-24 w-24 place-items-center overflow-hidden rounded-full bg-white transition after:pointer-events-none after:absolute after:inset-0 after:rounded-full after:border-[3px] after:border-[#d9d9d9] after:transition after:content-[''] group-hover:after:border-brand-red sm:h-28 sm:w-28 xl:h-32 xl:w-32"
             }
           >
-            <img
+            {industry.image ? <img
               src={industry.image}
               alt=""
               className={
@@ -86,7 +100,7 @@ export function IndustriesGrid({ framed = false }: { framed?: boolean }) {
                   ? "h-12 w-12 object-contain mix-blend-multiply"
                   : `${industry.className ?? "h-14 w-14 sm:h-16 sm:w-16 xl:h-20 xl:w-20"} object-contain mix-blend-multiply`
               }
-            />
+            /> : <Building2 className="h-10 w-10 text-brand-red" aria-hidden="true" />}
           </div>
           <div
             className={
@@ -97,6 +111,9 @@ export function IndustriesGrid({ framed = false }: { framed?: boolean }) {
           >
             {industry.name}
           </div>
+          {"description" in industry && industry.description && !framed ? (
+            <p className="mt-2 text-sm text-muted-foreground">{industry.description}</p>
+          ) : null}
         </div>
       ))}
     </div>
