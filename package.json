@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:hostinger": "npm --prefix api ci --omit=dev && npm run build",
+    "start": "node api/src/server.js",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",

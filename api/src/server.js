@@ -1,6 +1,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import { existsSync } from "node:fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -13,12 +14,15 @@ dotenv.config();
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const frontendDir = path.resolve(__dirname, "../../dist");
+const frontendIndex = path.join(frontendDir, "index.html");
+const hasFrontend = existsSync(frontendIndex);
 
 app.use(cors({ origin: process.env.CLIENT_URL }));
 app.use(express.json({ limit: "2mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-app.get("/", (_req, res) =>
+if (!hasFrontend) app.get("/", (_req, res) =>
   res.json({
     ok: true,
     name: "Shivrudra Graphics API",
@@ -43,6 +47,13 @@ app.use("/api/public", publicRoutes);
 app.use("/api", (_req, res) => {
   res.status(404).json({ success: false, message: "API route not found" });
 });
+
+if (hasFrontend) {
+  app.use(express.static(frontendDir));
+  app.get(/^(?!\/(?:api|uploads|assets)(?:\/|$)).*/, (_req, res) => {
+    res.sendFile(frontendIndex);
+  });
+}
 
 app.use((err, _req, res, _next) => {
   console.error(err);
