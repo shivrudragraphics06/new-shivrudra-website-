@@ -77,10 +77,10 @@ export function Header() {
       </div>
 
       {/* Nav */}
-      <nav className="hidden md:block border-t border-border bg-brand-light">
+      <nav className="relative hidden md:block border-t border-border bg-brand-light">
         <div className="container-page flex flex-wrap items-center justify-center gap-1">
           {NAV.map((item) => (
-            <div key={item.to} className="relative group">
+            <div key={item.to} className="group">
               <Link
                 to={item.to}
                 activeOptions={{ exact: item.to === "/" }}
@@ -95,7 +95,7 @@ export function Header() {
 
               {item.mega && (
                 <div
-                  className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition absolute left-0 top-full z-50 w-[min(95vw,900px)] bg-white border border-border shadow-soft rounded-b-xl p-6"
+                  className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition absolute left-1/2 -translate-x-1/2 top-full z-50 w-[min(95vw,900px)] bg-white border border-border shadow-soft rounded-b-xl p-6"
                   onMouseLeave={() => setServicesOpen(false)}
                 >
                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1">
