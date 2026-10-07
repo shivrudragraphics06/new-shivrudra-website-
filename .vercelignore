@@ -1,0 +1,5 @@
+api/**
+.chrome-tmp/**
+tmp-*
+tmp-pdf-images/**
+tmp-pdf-images-preview/**

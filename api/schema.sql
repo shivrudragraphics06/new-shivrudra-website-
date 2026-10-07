@@ -1,0 +1,259 @@
+CREATE DATABASE IF NOT EXISTS shivrudra_graphics
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE shivrudra_graphics;
+
+CREATE TABLE IF NOT EXISTS admins (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(150) NOT NULL,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  last_login_at DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS services (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(150) NOT NULL,
+  slug VARCHAR(180) NOT NULL UNIQUE,
+  short_description VARCHAR(500),
+  description LONGTEXT,
+  image_data LONGBLOB,
+  image_mime_type VARCHAR(100),
+  image_filename VARCHAR(255),
+  icon_data LONGBLOB,
+  icon_mime_type VARCHAR(100),
+  icon_filename VARCHAR(255),
+  display_order INT DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  seo_title VARCHAR(255),
+  seo_description VARCHAR(500),
+  image_url VARCHAR(500),
+  sort_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS categories (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  service_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(150) NOT NULL,
+  slug VARCHAR(180) NOT NULL UNIQUE,
+  description TEXT,
+  image_data LONGBLOB,
+  image_mime_type VARCHAR(100),
+  image_filename VARCHAR(255),
+  display_order INT DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  image_url VARCHAR(500),
+  sort_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_categories_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS products (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  category_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  slug VARCHAR(220) NOT NULL UNIQUE,
+  sku VARCHAR(100),
+  short_description VARCHAR(500),
+  description LONGTEXT,
+  main_image_data LONGBLOB,
+  main_image_mime_type VARCHAR(100),
+  main_image_filename VARCHAR(255),
+  featured BOOLEAN DEFAULT FALSE,
+  display_order INT DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  seo_title VARCHAR(255),
+  seo_description VARCHAR(500),
+  main_image_url VARCHAR(500),
+  meta_title VARCHAR(255),
+  meta_description VARCHAR(500),
+  sort_order INT DEFAULT 0,
+  is_featured BOOLEAN DEFAULT FALSE,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS product_images (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  product_id BIGINT UNSIGNED NOT NULL,
+  image_data LONGBLOB,
+  mime_type VARCHAR(100),
+  original_filename VARCHAR(255),
+  alt_text VARCHAR(255),
+  image_url VARCHAR(500),
+  display_order INT DEFAULT 0,
+  sort_order INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_product_images_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS product_variants (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  product_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  sku VARCHAR(100),
+  item_count INT UNSIGNED DEFAULT NULL,
+  description TEXT,
+  image_data LONGBLOB,
+  image_mime_type VARCHAR(100),
+  image_filename VARCHAR(255),
+  display_order INT DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_product_variants_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS product_variant_items (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  variant_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(200) NOT NULL,
+  sku VARCHAR(100),
+  description TEXT,
+  image_data LONGBLOB,
+  image_mime_type VARCHAR(100),
+  image_filename VARCHAR(255),
+  display_order INT NOT NULL DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_variant_items_variant FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS gallery_categories (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(150) NOT NULL,
+  display_order INT DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE'
+);
+
+CREATE TABLE IF NOT EXISTS gallery (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  gallery_category_id BIGINT UNSIGNED NULL,
+  title VARCHAR(200),
+  image_data LONGBLOB,
+  image_mime_type VARCHAR(100),
+  image_filename VARCHAR(255),
+  image_url VARCHAR(500),
+  alt_text VARCHAR(255),
+  description TEXT,
+  display_order INT DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_gallery_category FOREIGN KEY (gallery_category_id) REFERENCES gallery_categories(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS blogs (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  featured_image_data LONGBLOB,
+  featured_image_mime_type VARCHAR(100),
+  featured_image_filename VARCHAR(255),
+  featured_image_url VARCHAR(500),
+  excerpt TEXT,
+  content LONGTEXT,
+  author VARCHAR(150),
+  publish_date DATETIME,
+  status ENUM('DRAFT','PUBLISHED') NOT NULL DEFAULT 'DRAFT',
+  seo_title VARCHAR(255),
+  seo_description VARCHAR(500),
+  is_published BOOLEAN DEFAULT FALSE,
+  published_at DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS industries (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(150) NOT NULL,
+  slug VARCHAR(180) NOT NULL UNIQUE,
+  image_data LONGBLOB,
+  image_mime_type VARCHAR(100),
+  image_filename VARCHAR(255),
+  icon_url VARCHAR(500),
+  image_url VARCHAR(500),
+  short_description VARCHAR(500),
+  description LONGTEXT,
+  display_order INT DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  sort_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS clients (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(200) NOT NULL,
+  logo_data LONGBLOB,
+  logo_mime_type VARCHAR(100),
+  logo_filename VARCHAR(255),
+  logo_url VARCHAR(500),
+  website_url VARCHAR(500),
+  display_order INT DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  sort_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS testimonials (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  client_name VARCHAR(150) NOT NULL,
+  company_name VARCHAR(200),
+  designation VARCHAR(150),
+  client_image_data LONGBLOB,
+  client_image_mime_type VARCHAR(100),
+  client_image_filename VARCHAR(255),
+  image_url VARCHAR(500),
+  rating TINYINT UNSIGNED DEFAULT 5,
+  testimonial TEXT,
+  message TEXT,
+  display_order INT DEFAULT 0,
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  sort_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inquiries (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(150) NOT NULL,
+  phone VARCHAR(30),
+  email VARCHAR(190),
+  company VARCHAR(200),
+  service_id BIGINT UNSIGNED NULL,
+  product_id BIGINT UNSIGNED NULL,
+  subject VARCHAR(255),
+  message TEXT,
+  status ENUM('NEW','CONTACTED','IN_PROGRESS','CLOSED') NOT NULL DEFAULT 'NEW',
+  admin_notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_inquiries_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  setting_key VARCHAR(150) NOT NULL UNIQUE,
+  setting_value LONGTEXT NULL,
+  binary_value LONGBLOB NULL,
+  mime_type VARCHAR(100) NULL,
+  filename VARCHAR(255) NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

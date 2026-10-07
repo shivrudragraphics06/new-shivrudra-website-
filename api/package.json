@@ -1,0 +1,29 @@
+{
+  "name": "shivrudra-graphics-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "create-admin": "node src/scripts/createAdmin.js",
+    "setup-db": "node src/scripts/setupDb.js",
+    "seed-static": "node src/scripts/seedStaticData.js",
+    "seed-clients": "node src/scripts/seedClientLogos.js",
+    "seed-service-images": "node src/scripts/seedServiceImages.js",
+    "import-brochure": "node src/scripts/importBrochureData.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
+    "mysql2": "^3.15.3",
+    "slugify": "^1.6.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
