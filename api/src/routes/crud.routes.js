@@ -176,6 +176,8 @@ function normalizeStatus(payload) {
 
 function hydrateCompatibility(row, resourceKey, req) {
   const base = `/api/public/media/${resourceKey}/${row.id}`;
+  const version = row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at;
+  const mediaVersion = version ? `?v=${encodeURIComponent(version)}` : "";
   const output = { ...row };
 
   delete output.image_data;
@@ -192,13 +194,13 @@ function hydrateCompatibility(row, resourceKey, req) {
   output.meta_title = row.seo_title ?? row.meta_title;
   output.meta_description = row.seo_description ?? row.meta_description;
 
-  if (row.image_mime_type) output.image_url = `${base}/image`;
-  if (row.icon_mime_type) output.icon_url = `${base}/icon`;
-  if (row.main_image_mime_type) output.main_image_url = `${base}/image`;
-  if (row.featured_image_mime_type) output.featured_image_url = `${base}/image`;
-  if (row.logo_mime_type) output.logo_url = `${base}/logo`;
-  if (row.client_image_mime_type) output.image_url = `${base}/image`;
-  if (row.mime_type) output.image_url = `${base}/image`;
+  if (row.image_mime_type) output.image_url = `${base}/image${mediaVersion}`;
+  if (row.icon_mime_type) output.icon_url = `${base}/icon${mediaVersion}`;
+  if (row.main_image_mime_type) output.main_image_url = `${base}/image${mediaVersion}`;
+  if (row.featured_image_mime_type) output.featured_image_url = `${base}/image${mediaVersion}`;
+  if (row.logo_mime_type) output.logo_url = `${base}/logo${mediaVersion}`;
+  if (row.client_image_mime_type) output.image_url = `${base}/image${mediaVersion}`;
+  if (row.mime_type) output.image_url = `${base}/image${mediaVersion}`;
 
   return output;
 }

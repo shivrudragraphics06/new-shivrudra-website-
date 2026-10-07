@@ -20,7 +20,8 @@ const rows = {
 
 try {
   for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
-    const page = await browser.newPage({ viewport });
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.route("**/api/public/**", async route => {
@@ -65,6 +66,29 @@ try {
     await page.getByAltText("Admin Client Test").waitFor({ state: "detached" });
     assert.equal(await page.getByAltText("Bank of India", { exact: true }).count(), 0);
     rows.clients = [{ id: 999, name: "Admin Client Test", logo_url: "/api/public/media/clients/999/logo" }];
+    await page.evaluate(() => window.dispatchEvent(new StorageEvent("storage", { key: "shivrudra_public_content_changed" })));
+    await page.getByAltText("Admin Client Test").waitFor();
+
+    const editor = await context.newPage();
+    await editor.addInitScript(() => localStorage.setItem("admin_token", "fixture-token"));
+    await editor.route("**/api/admin/clients", route => {
+      if (route.request().method() === "POST") {
+        rows.clients.push({ id: 1000, name: "Saved Client Test", logo_url: "/api/public/media/clients/1000/logo" });
+        return route.fulfill({ json: { id: 1000 } });
+      }
+      return route.fulfill({ json: rows.clients });
+    });
+    await editor.route("**/api/public/media/**", route => route.fulfill({ contentType: "image/png", body: image }));
+    await editor.goto(base + "/shivrudra_graphics-myadmin/clients");
+    await editor.getByRole("button", { name: "Add Client", exact: true }).click();
+    await editor.getByLabel("Client Name", { exact: true }).fill("Saved Client Test");
+    await editor.locator('input[type="file"]').setInputFiles("src/assets/client logos/boi.png");
+    await editor.getByRole("button", { name: "Save Product", exact: true }).click();
+    await editor.getByText("Client added successfully.", { exact: true }).waitFor();
+    await page.bringToFront();
+    await page.getByAltText("Saved Client Test").waitFor();
+    await editor.close();
+    rows.clients = [{ id: 999, name: "Admin Client Test", logo_url: "/api/public/media/clients/999/logo" }];
 
     const originalGallery = rows.gallery;
     rows.gallery = [];
@@ -78,7 +102,7 @@ try {
       fs.mkdirSync(process.env.SHIVRUDRA_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: path.join(process.env.SHIVRUDRA_SCREENSHOT_DIR, `blogs-${viewport.width}.png`), fullPage: true });
     }
-    await page.close();
+    await context.close();
     console.log(`PASS ${viewport.width}px: content, images, gallery filters/preview, blog navigation, escaped article content, testimonials, empty lists, focus refresh, and no overflow.`);
   }
 } finally {

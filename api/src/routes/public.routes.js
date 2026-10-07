@@ -4,9 +4,14 @@ import { pool } from "../db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const publicRoutes = Router();
+publicRoutes.use((_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
 
-function mediaUrl(req, resource, id, field = "image") {
-  return `/api/public/media/${resource}/${id}/${field}`;
+function mediaUrl(req, resource, id, field = "image", updatedAt) {
+  const version = updatedAt instanceof Date ? updatedAt.toISOString() : updatedAt;
+  return `/api/public/media/${resource}/${id}/${field}${version ? `?v=${encodeURIComponent(version)}` : ""}`;
 }
 
 const publicMedia = {
@@ -38,13 +43,13 @@ function publicRow(row, resource, req) {
   output.meta_title = row.seo_title ?? row.meta_title;
   output.meta_description = row.seo_description ?? row.meta_description;
 
-  if (row.image_mime_type) output.image_url = mediaUrl(req, resource, row.id);
-  if (row.icon_mime_type) output.icon_url = mediaUrl(req, resource, row.id, "icon");
-  if (row.main_image_mime_type) output.main_image_url = mediaUrl(req, resource, row.id);
-  if (row.featured_image_mime_type) output.featured_image_url = mediaUrl(req, resource, row.id);
-  if (row.logo_mime_type) output.logo_url = mediaUrl(req, resource, row.id, "logo");
-  if (row.client_image_mime_type) output.image_url = mediaUrl(req, resource, row.id);
-  if (row.mime_type) output.image_url = mediaUrl(req, resource, row.id);
+  if (row.image_mime_type) output.image_url = mediaUrl(req, resource, row.id, "image", row.updated_at);
+  if (row.icon_mime_type) output.icon_url = mediaUrl(req, resource, row.id, "icon", row.updated_at);
+  if (row.main_image_mime_type) output.main_image_url = mediaUrl(req, resource, row.id, "image", row.updated_at);
+  if (row.featured_image_mime_type) output.featured_image_url = mediaUrl(req, resource, row.id, "image", row.updated_at);
+  if (row.logo_mime_type) output.logo_url = mediaUrl(req, resource, row.id, "logo", row.updated_at);
+  if (row.client_image_mime_type) output.image_url = mediaUrl(req, resource, row.id, "image", row.updated_at);
+  if (row.mime_type) output.image_url = mediaUrl(req, resource, row.id, "image", row.updated_at);
 
   return output;
 }
@@ -117,7 +122,8 @@ publicRoutes.get(
 publicRoutes.get(
   "/gallery",
   asyncHandler(async (req, res) => {
-    const [rows] = await pool.query(`SELECT gallery.*, gallery_categories.name AS category
+    const [rows] = await pool.query(`SELECT gallery.id, gallery.title, gallery.alt_text, gallery.image_url,
+      gallery.image_mime_type, gallery.updated_at, gallery.status, gallery.display_order, gallery_categories.name AS category
       FROM gallery LEFT JOIN gallery_categories ON gallery_categories.id = gallery.gallery_category_id
       WHERE gallery.status = 'ACTIVE' ORDER BY gallery.display_order ASC, gallery.id DESC`);
     res.json(rows.map((row) => publicRow(row, "gallery", req)));
@@ -127,7 +133,7 @@ publicRoutes.get(
 publicRoutes.get(
   "/blogs",
   asyncHandler(async (req, res) => {
-    const [rows] = await pool.query("SELECT * FROM blogs WHERE status = 'PUBLISHED' ORDER BY publish_date DESC, id DESC");
+    const [rows] = await pool.query("SELECT id, title, slug, excerpt, content, author, publish_date, featured_image_url, featured_image_mime_type, updated_at, status FROM blogs WHERE status = 'PUBLISHED' ORDER BY publish_date DESC, id DESC");
     res.json(rows.map((row) => publicRow(row, "blogs", req)));
   }),
 );
@@ -135,7 +141,7 @@ publicRoutes.get(
 publicRoutes.get(
   "/industries",
   asyncHandler(async (req, res) => {
-    const [rows] = await pool.query("SELECT * FROM industries WHERE status = 'ACTIVE' ORDER BY display_order ASC, id DESC");
+    const [rows] = await pool.query("SELECT id, name, slug, short_description, description, image_url, icon_url, image_mime_type, updated_at, status, display_order FROM industries WHERE status = 'ACTIVE' ORDER BY display_order ASC, id DESC");
     res.json(rows.map((row) => publicRow(row, "industries", req)));
   }),
 );
@@ -143,7 +149,7 @@ publicRoutes.get(
 publicRoutes.get(
   "/clients",
   asyncHandler(async (req, res) => {
-    const [rows] = await pool.query("SELECT * FROM clients WHERE status = 'ACTIVE' ORDER BY display_order ASC, id DESC");
+    const [rows] = await pool.query("SELECT id, name, logo_url, website_url, logo_mime_type, updated_at, status, display_order FROM clients WHERE status = 'ACTIVE' ORDER BY display_order ASC, id DESC");
     res.json(rows.map((row) => publicRow(row, "clients", req)));
   }),
 );
@@ -151,7 +157,7 @@ publicRoutes.get(
 publicRoutes.get(
   "/testimonials",
   asyncHandler(async (req, res) => {
-    const [rows] = await pool.query("SELECT * FROM testimonials WHERE status = 'ACTIVE' ORDER BY display_order ASC, id DESC");
+    const [rows] = await pool.query("SELECT id, client_name, company_name, designation, testimonial, message, rating, image_url, client_image_mime_type, updated_at, status, display_order FROM testimonials WHERE status = 'ACTIVE' ORDER BY display_order ASC, id DESC");
     res.json(rows.map((row) => publicRow(row, "testimonials", req)));
   }),
 );

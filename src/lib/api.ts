@@ -1,4 +1,14 @@
 const API_URL = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:5000")).replace(/\/+$/, "");
+export const PUBLIC_CONTENT_CHANGE_KEY = "shivrudra_public_content_changed";
+
+function notifyPublicContentChanged() {
+  try {
+    localStorage.setItem(PUBLIC_CONTENT_CHANGE_KEY, `${Date.now()}:${Math.random()}`);
+  } catch {
+    // Saving still succeeds when browser storage is unavailable.
+  }
+  window.dispatchEvent(new Event(PUBLIC_CONTENT_CHANGE_KEY));
+}
 
 export function assetUrl(path?: string | null) {
   if (!path) return "";
@@ -30,6 +40,7 @@ export async function adminApi<T>(path: string, options: RequestInit = {}): Prom
   const isFormData = options.body instanceof FormData;
 
   const response = await fetch(`${API_URL}/api/admin${path}`, {
+    cache: "no-store",
     ...options,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
@@ -43,7 +54,9 @@ export async function adminApi<T>(path: string, options: RequestInit = {}): Prom
     throw new Error(data.message || "API request failed");
   }
 
-  return response.json();
+  const result = await response.json();
+  if (options.method && !["GET", "HEAD"].includes(options.method.toUpperCase())) notifyPublicContentChanged();
+  return result;
 }
 
 export async function loginAdmin(email: string, password: string) {
